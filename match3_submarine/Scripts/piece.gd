@@ -18,4 +18,6 @@ func _process(delta: float) -> void:
 
 
 func dim():
-	get_node("Sprite")
+	var sprite = get_node("Sprite")
+	sprite.modulate = Color(1,1,1, 0.5)
+	

@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://dy06odybt430r"]
 
 [ext_resource type="PackedScene" uid="uid://c58wipcij23s" path="res://Scenes/Piece.tscn" id="1_lkn55"]
-[ext_resource type="Texture2D" uid="uid://cqkknxf8bfxdq" path="res://assets/placeholder/green_piece.png" id="2_pxuya"]
+[ext_resource type="Texture2D" uid="uid://s2vc3ghah6uj" path="res://assets/Match 3 Assets/Pieces/Green Piece.png" id="2_xtav8"]
 
 [node name="green_piece" instance=ExtResource("1_lkn55")]
 anchors_preset = 8
@@ -13,4 +13,4 @@ color = "green"
 
 [node name="Sprite" parent="." index="0"]
 scale = Vector2(0.5, 0.5)
-texture = ExtResource("2_pxuya")
+texture = ExtResource("2_xtav8")
