@@ -1,9 +1,25 @@
-[gd_scene load_steps=5 format=3 uid="uid://cfbi8wsurrgj5"]
+[gd_scene load_steps=7 format=3 uid="uid://cfbi8wsurrgj5"]
 
 [ext_resource type="Texture2D" uid="uid://dbygg4lf5wbkr" path="res://assets/placeholder/background.png" id="1_0rot5"]
 [ext_resource type="Texture2D" uid="uid://bb1ldkhirojqk" path="res://assets/placeholder/top_ui3.png" id="2_kjccp"]
 [ext_resource type="Texture2D" uid="uid://xumkhuv7uuaa" path="res://assets/placeholder/bottom_ui2.png" id="3_udyfn"]
 [ext_resource type="Script" path="res://Scripts/grid.gd" id="4_2peo4"]
+[ext_resource type="Texture2D" uid="uid://7o2usfeyt6tm" path="res://assets/coloredBoxes/box2.png" id="5_k2igj"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3xsxq"]
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 10
+border_width_top = 10
+border_width_right = 10
+border_width_bottom = 10
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+expand_margin_left = 10.0
+expand_margin_top = 10.0
+expand_margin_right = 10.0
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -20,6 +36,7 @@ offset_bottom = 40.0
 texture = ExtResource("1_0rot5")
 
 [node name="TopUI" type="TextureRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -40,8 +57,8 @@ texture = ExtResource("3_udyfn")
 
 [node name="grid" type="Node2D" parent="."]
 script = ExtResource("4_2peo4")
-width = 8
-height = 10
+width = 6
+height = 9
 x_start = 64
 y_start = 800
 offset = 64
@@ -61,6 +78,72 @@ one_shot = true
 [node name="refill_timer" type="Timer" parent="."]
 wait_time = 0.5
 one_shot = true
+
+[node name="MarginGoalCounter" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -74.0
+offset_right = 74.0
+offset_bottom = 243.0
+grow_horizontal = 2
+scale = Vector2(0.7, 0.7)
+theme_override_constants/margin_top = 30
+
+[node name="PanelGoalCounter" type="PanelContainer" parent="MarginGoalCounter"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_3xsxq")
+
+[node name="GoalCounterBox" type="VBoxContainer" parent="MarginGoalCounter/PanelGoalCounter"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BluePieceImage" type="TextureRect" parent="MarginGoalCounter/PanelGoalCounter/GoalCounterBox"]
+layout_mode = 2
+texture = ExtResource("5_k2igj")
+
+[node name="CounterLabel" type="Label" parent="MarginGoalCounter/PanelGoalCounter/GoalCounterBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.133196, 0.133196, 0.133196, 1)
+theme_override_font_sizes/font_size = 40
+text = "30
+"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="MarginMoveCounter" type="MarginContainer" parent="."]
+layout_mode = 0
+offset_left = 59.0
+offset_top = 19.0
+offset_right = 188.0
+offset_bottom = 172.0
+
+[node name="PanelMoveCounter" type="PanelContainer" parent="MarginMoveCounter"]
+layout_mode = 2
+
+[node name="MoveContainer" type="VBoxContainer" parent="MarginMoveCounter/PanelMoveCounter"]
+layout_mode = 2
+alignment = 1
+
+[node name="LevelLabel" type="Label" parent="MarginMoveCounter/PanelMoveCounter/MoveContainer"]
+layout_mode = 2
+text = "Level 1
+"
+horizontal_alignment = 1
+
+[node name="MoveCounterLabel" type="Label" parent="MarginMoveCounter/PanelMoveCounter/MoveContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "20
+"
+horizontal_alignment = 1
+
+[node name="MoveLabel" type="Label" parent="MarginMoveCounter/PanelMoveCounter/MoveContainer"]
+layout_mode = 2
+text = "Moves
+"
+horizontal_alignment = 1
 
 [connection signal="timeout" from="destroy_timer" to="grid" method="_on_destroy_timer_timeout"]
 [connection signal="timeout" from="collapse_timer" to="grid" method="_on_collapse_timer_timeout"]

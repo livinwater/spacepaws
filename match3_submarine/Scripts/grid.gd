@@ -30,17 +30,49 @@ var last_place = Vector2(0,0)
 var last_direction = Vector2(0,0)
 var move_checked = false
 
+const BLUE_GOAL = 10
+var blue_pieces_cleared = 0
+var goal_counter_box: VBoxContainer
+
+# Add these new variables near the top of the script
+const MOVE_LIMIT = 20
+var moves_left = MOVE_LIMIT
+var move_counter_label: Label
+
 func _ready():
 	state = GameState.MOVE
 	randomize()
 	all_pieces = make_2D_array()
+	center_grid()  # Call this before spawning pieces
 	spawn_pieces()
+	
+	# Get reference to the GoalCounterBox node
+	goal_counter_box = get_node("../MarginGoalCounter/PanelGoalCounter/GoalCounterBox")
+	update_blue_pieces_counter()
+
+	# Add this line to get the reference to the MoveCounterLabel
+	move_counter_label = get_node("../MarginMoveCounter/PanelMoveCounter/MoveContainer/MoveCounterLabel")
+	update_move_counter()
+
+# New function to center the grid
+func center_grid():
+	var screen_size = get_viewport_rect().size
+	var grid_width = width * offset
+	var grid_height = height * offset
+	x_start = (screen_size.x - grid_width) / 2
+	y_start = screen_size.y - (screen_size.y - grid_height) / 2
 
 func restricted_movement(place):
 	for i in empty_spaces.size():
 		if empty_spaces[i] == place:
 			return true
 	return false
+	
+# Update this function
+func update_blue_pieces_counter():
+	if goal_counter_box:
+		var pieces_left = BLUE_GOAL - blue_pieces_cleared
+		goal_counter_box.get_node("CounterLabel").text = "x " + str(pieces_left)
 
 func make_2D_array():
 	var array = []
@@ -118,7 +150,10 @@ func swap_pieces(column, row, direction):
 		other_piece.move(grid_to_pixel(column, row))
 		if not move_checked:
 			find_matches()
-		
+			moves_left -= 1
+			update_move_counter()
+			check_game_over()
+
 # Store information for swap back
 func store_info(first_piece, other_piece, place, direction):
 	piece_one = first_piece
@@ -132,6 +167,8 @@ func swap_back():
 		swap_pieces(last_place.x, last_place.y, last_direction)	
 	state = GameState.MOVE
 	move_checked = false
+	moves_left += 1  # Refund the move if it didn't result in a match
+	update_move_counter()
 	
 # Determine which direction to swap
 func touch_difference(grid_1, grid_2):
@@ -185,6 +222,9 @@ func destroy_matched():
 		for j in height:
 			if all_pieces[i][j] != null and all_pieces[i][j].matched:
 				was_matched = true
+				if all_pieces[i][j].color == "blue":
+					blue_pieces_cleared += 1
+					update_blue_pieces_counter()
 				all_pieces[i][j].queue_free()
 				all_pieces[i][j] = null
 	move_checked = true
@@ -192,6 +232,30 @@ func destroy_matched():
 		get_parent().get_node("collapse_timer").start()
 	else:
 		swap_back()
+	
+	check_goal()
+
+# New function to check if the goal has been reached
+func check_goal():
+	check_game_over()
+
+# Add this new function to check if the game is over
+func check_game_over():
+	if moves_left <= 0:
+		print("Game Over! Out of moves.")
+		show_game_over_screen()
+	elif blue_pieces_cleared >= BLUE_GOAL:
+		print("Level completed! You've cleared", blue_pieces_cleared, "blue pieces!")
+		show_win_screen()
+
+# Add this new function to show the game over screen
+func show_game_over_screen():
+	var game_over_screen = preload("res://Scenes/GameOverScreen.tscn").instantiate()
+	get_tree().root.add_child(game_over_screen)
+
+func show_win_screen():
+	var win_screen = preload("res://Scenes/WinScreen.tscn").instantiate()
+	get_tree().root.add_child(win_screen)
 
 # Collapse columns after match
 func collapse_columns():
@@ -225,6 +289,11 @@ func after_refill():
 	# If no new matches are found, switch state back to move
 	state = GameState.MOVE
 	move_checked = false
+
+# Add this new function to update the move counter display
+func update_move_counter():
+	if move_counter_label:
+		move_counter_label.text = str(moves_left)
 
 # Process function to handle state and touch input
 func _process(delta):

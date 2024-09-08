@@ -1,11 +1,11 @@
 [gd_scene load_steps=3 format=3 uid="uid://du7jo6qr3pude"]
 
 [ext_resource type="PackedScene" uid="uid://c58wipcij23s" path="res://Scenes/Piece.tscn" id="1_1okeb"]
-[ext_resource type="Texture2D" uid="uid://6uadjlevitmy" path="res://assets/Match 3 Assets/Pieces/Yellow Piece.png" id="2_aoh6c"]
+[ext_resource type="Texture2D" uid="uid://b1ot0iexnmx25" path="res://assets/coloredBoxes/box4.png" id="2_353sf"]
 
 [node name="yellow_piece" instance=ExtResource("1_1okeb")]
 color = "yellow"
 
 [node name="Sprite" parent="." index="0"]
 scale = Vector2(0.5, 0.5)
-texture = ExtResource("2_aoh6c")
+texture = ExtResource("2_353sf")

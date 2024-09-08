@@ -1,0 +1,19 @@
+[node name="BluePieceCounter" type="HBoxContainer"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_right = 20.0
+offset_bottom = 40.0
+grow_horizontal = 2
+alignment = 1
+
+[node name="BluePieceTexture" type="TextureRect"]
+layout_mode = 2
+expand_mode = 2
+stretch_mode = 5
+
+[node name="CounterLabel" type="Label"]
+layout_mode = 2
+text = "x 10"
+vertical_alignment = 1

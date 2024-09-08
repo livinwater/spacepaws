@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://dcktvcs3pbhg0"]
+
+[ext_resource type="Texture2D" uid="uid://cage37vc0u1en" path="res://assets/Match 3 Assets/UI/Buttons/Make Color Bomb Button.png" id="1_1si0s"]
+[ext_resource type="Script" path="res://Scenes/bomb_piece.gd" id="1_onjv2"]
+
+[node name="bomb_piece" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_onjv2")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("1_1si0s")
