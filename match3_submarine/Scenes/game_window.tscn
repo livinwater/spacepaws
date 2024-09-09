@@ -1,10 +1,12 @@
-[gd_scene load_steps=7 format=3 uid="uid://cfbi8wsurrgj5"]
+[gd_scene load_steps=9 format=3 uid="uid://cfbi8wsurrgj5"]
 
 [ext_resource type="Texture2D" uid="uid://dbygg4lf5wbkr" path="res://assets/placeholder/background.png" id="1_0rot5"]
 [ext_resource type="Texture2D" uid="uid://bb1ldkhirojqk" path="res://assets/placeholder/top_ui3.png" id="2_kjccp"]
 [ext_resource type="Texture2D" uid="uid://xumkhuv7uuaa" path="res://assets/placeholder/bottom_ui2.png" id="3_udyfn"]
 [ext_resource type="Script" path="res://Scripts/grid.gd" id="4_2peo4"]
 [ext_resource type="Texture2D" uid="uid://7o2usfeyt6tm" path="res://assets/coloredBoxes/box2.png" id="5_k2igj"]
+[ext_resource type="Texture2D" uid="uid://bxtlmr5cuyufw" path="res://assets/Match 3 Assets/UI/Score Bar Background.png" id="6_a4fdf"]
+[ext_resource type="Texture2D" uid="uid://bcnqax51grxui" path="res://assets/Match 3 Assets/UI/Score Bar Fill.png" id="7_uan1c"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3xsxq"]
 bg_color = Color(1, 1, 1, 1)
@@ -84,9 +86,10 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -74.0
-offset_right = 74.0
-offset_bottom = 243.0
+offset_left = -39.0
+offset_top = 3.0
+offset_right = 109.0
+offset_bottom = 246.0
 grow_horizontal = 2
 scale = Vector2(0.7, 0.7)
 theme_override_constants/margin_top = 30
@@ -145,6 +148,90 @@ text = "Moves
 "
 horizontal_alignment = 1
 
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 36.0
+offset_top = -88.0
+offset_right = 136.0
+offset_bottom = -25.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 40
+text = "Back"
+
+[node name="WalletAddressContainer" type="MarginContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -164.0
+offset_top = 20.0
+offset_right = -52.0
+offset_bottom = 169.0
+grow_horizontal = 0
+
+[node name="WalletAddressCounter" type="PanelContainer" parent="WalletAddressContainer"]
+visible = false
+layout_mode = 2
+
+[node name="WalletContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -69.0
+offset_top = -127.0
+offset_right = 43.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 1
+
+[node name="WalletAddressLabel" type="Label" parent="WalletContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.960784, 0.882353, 1)
+theme_override_font_sizes/font_size = 30
+text = "20
+"
+horizontal_alignment = 1
+
+[node name="MarginTotalScore" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -158.0
+offset_top = 22.0
+offset_right = -29.0
+offset_bottom = 175.0
+grow_horizontal = 0
+
+[node name="PanelScoreCounter" type="PanelContainer" parent="MarginTotalScore"]
+layout_mode = 2
+
+[node name="ScoreContainer" type="VBoxContainer" parent="MarginTotalScore/PanelScoreCounter"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="ScoreValueLabel" type="Label" parent="MarginTotalScore/PanelScoreCounter/ScoreContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "20
+"
+horizontal_alignment = 1
+
+[node name="ScoreProgressBar" type="TextureProgressBar" parent="MarginTotalScore/PanelScoreCounter/ScoreContainer"]
+layout_mode = 2
+texture_under = ExtResource("6_a4fdf")
+texture_progress = ExtResource("7_uan1c")
+
 [connection signal="timeout" from="destroy_timer" to="grid" method="_on_destroy_timer_timeout"]
 [connection signal="timeout" from="collapse_timer" to="grid" method="_on_collapse_timer_timeout"]
 [connection signal="timeout" from="refill_timer" to="grid" method="_on_refill_timer_timeout"]
+[connection signal="pressed" from="BackButton" to="grid" method="_on_back_button_pressed"]

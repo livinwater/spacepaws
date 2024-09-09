@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="match3_submarine"
-run/main_scene="res://Scenes/game_window.tscn"
+run/main_scene="res://Scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 config/icon="res://icon.svg"
+
+[autoload]
+
+SolanaService="*res://addons/SolanaSDK/Autoload/SolanaService.tscn"
 
 [display]
 
@@ -23,6 +27,10 @@ window/size/borderless=true
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep_width"
 window/handheld/orientation=1
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/SolanaSDK/plugin.cfg")
 
 [input]
 
@@ -39,4 +47,5 @@ pointing/emulate_touch_from_mouse=true
 [rendering]
 
 renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true
 2d/snap/snap_2d_transforms_to_pixel=true

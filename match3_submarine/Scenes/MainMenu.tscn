@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://eqg28oca3p3r"]
+[gd_scene load_steps=4 format=3 uid="uid://eqg28oca3p3r"]
 
 [ext_resource type="Script" path="res://Scenes/main_menu.gd" id="1_i52j3"]
 [ext_resource type="Texture2D" uid="uid://dbygg4lf5wbkr" path="res://assets/placeholder/background.png" id="1_l0q7o"]
+[ext_resource type="PackedScene" uid="uid://cfbi8wsurrgj5" path="res://Scenes/game_window.tscn" id="2_tfadg"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -11,6 +12,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_i52j3")
+game_scene = ExtResource("2_tfadg")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 0
@@ -52,4 +54,5 @@ theme_override_font_sizes/font_size = 40
 text = "START
 "
 
+[connection signal="pressed" from="ConnectWallet" to="." method="_on_connect_wallet_pressed"]
 [connection signal="pressed" from="StartButton" to="." method="_on_start_button_pressed"]

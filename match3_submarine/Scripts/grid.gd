@@ -11,6 +11,7 @@ var state
 @export var offset: int
 @export var y_offset: int
 @export var empty_spaces : PackedVector2Array
+@export var piece_value: int
 
 var possible_pieces = [
 	preload("res://Scenes/blue_piece.tscn"),
@@ -35,12 +36,23 @@ var blue_pieces_cleared = 0
 var goal_counter_box: VBoxContainer
 
 # Add these new variables near the top of the script
-const MOVE_LIMIT = 20
+const MOVE_LIMIT = 15
 var moves_left = MOVE_LIMIT
 var move_counter_label: Label
+var wallet_address_label: Label
+var score_label: Label
+var score_bar: TextureProgressBar
+var streak = 1
+var max_score = 500
+
+
+var bomb_piece = preload("res://Scenes/bomb_piece.tscn")
 
 func _ready():
 	state = GameState.MOVE
+	var back_button = $BackButton
+	if back_button:
+		back_button.connect("pressed", Callable(self, "_on_back_button_pressed"))
 	randomize()
 	all_pieces = make_2D_array()
 	center_grid()  # Call this before spawning pieces
@@ -53,6 +65,23 @@ func _ready():
 	# Add this line to get the reference to the MoveCounterLabel
 	move_counter_label = get_node("../MarginMoveCounter/PanelMoveCounter/MoveContainer/MoveCounterLabel")
 	update_move_counter()
+	
+	# Get reference to the WalletAddressLabel
+	wallet_address_label = get_node("../WalletContainer/WalletAddressLabel")
+	update_wallet_address()
+	
+	score_label = get_node("../MarginTotalScore/PanelScoreCounter/ScoreContainer/ScoreValueLabel")
+	if score_label:
+		score_label.text = "0"  # Initialize the score to 0
+	else:
+		print("Error: ScoreLabel not found")
+		
+	score_bar = get_node("../MarginTotalScore/PanelScoreCounter/ScoreContainer/ScoreProgressBar")	
+	if score_bar:
+		score_bar.max_value = max_score
+		score_bar.value = 0  # Initialize the progress bar to 0
+	else:
+		print("Error: ScoreProgressBar not found")
 
 # New function to center the grid
 func center_grid():
@@ -189,35 +218,85 @@ func find_matches():
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] != null:
-				check_match(i, j)
+				if all_pieces[i][j].is_bomb:
+					check_bomb_explosion(i, j)
+				else:
+					check_match(i, j)
 	get_parent().get_node("destroy_timer").start()
 	
 # Helper function to check for matches in a specific position
 func check_match(i, j):
+	if all_pieces[i][j] == null or all_pieces[i][j].is_bomb:
+		return
+
 	var current_color = all_pieces[i][j].color
-	# Horizontal match
-	if i > 0 and i < width - 1:
-		if all_pieces[i - 1][j] != null and all_pieces[i + 1][j] != null:
-			if all_pieces[i - 1][j].color == current_color and all_pieces[i + 1][j].color == current_color:
-				mark_as_matched(i - 1, j)
-				mark_as_matched(i, j)
-				mark_as_matched(i + 1, j)
-	# Vertical match
-	if j > 0 and j < height - 1:
-		if all_pieces[i][j - 1] != null and all_pieces[i][j + 1] != null:
-			if all_pieces[i][j - 1].color == current_color and all_pieces[i][j + 1].color == current_color:
-				mark_as_matched(i, j - 1)
-				mark_as_matched(i, j)
-				mark_as_matched(i, j + 1)
+	var horizontal_matches = 1
+	var vertical_matches = 1
+   
+	# Check horizontal matches
+	for k in range(1, 3):
+		if i + k < width and all_pieces[i + k][j] != null and all_pieces[i + k][j].color == current_color:
+			horizontal_matches += 1
+		else:
+			break
+   
+	# Check vertical matches
+	for k in range(1, 3):
+		if j + k < height and all_pieces[i][j + k] != null and all_pieces[i][j + k].color == current_color:
+			vertical_matches += 1
+		else:
+			break
+   
+	if horizontal_matches >= 3:
+		for k in range(i, i + horizontal_matches):
+			if k >= 0 and k < width:
+				mark_as_matched(k, j)
+		print("Horizontal match at (%d, %d): %d pieces" % [i, j, horizontal_matches])
+	elif vertical_matches >= 3:
+		for k in range(j, j + vertical_matches):
+			if k >= 0 and k < height:
+				mark_as_matched(i, k)
+		print("Vertical match at (%d, %d): %d pieces" % [i, j, vertical_matches])
+
+	print("Matches at (%d, %d): horizontal = %d, vertical = %d" % [i, j, horizontal_matches, vertical_matches])
+
+# New function to create a bomb
+func create_bomb(i, j):
+	print("Attempting to create bomb at (%d, %d)" % [i, j])
+	if all_pieces[i][j] != null:
+		all_pieces[i][j].queue_free()
+	var bomb = bomb_piece.instantiate()
+	add_child(bomb)
+	bomb.position = grid_to_pixel(i, j)
+	all_pieces[i][j] = bomb
+	bomb.matched = false
+	bomb.is_bomb = true
+	bomb.connect("input_event", Callable(self, "_on_bomb_clicked").bind(i, j))
+	print("Bomb created at position (%d, %d)" % [i, j])
+
+# Add this new function to handle bomb clicks
+func _on_bomb_clicked(viewport, event, shape_idx, i, j):
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		print("Bomb clicked at (%d, %d)" % [i, j])
+		explode_bomb(i, j)
+		find_matches()
+
+# Modify the check_bomb_explosion function (we won't need this anymore, but keep it for now)
+func check_bomb_explosion(i, j):
+	pass  # We're not using this function anymore, but keeping it to avoid errors
 
 # Mark piece as matched and dim it
 func mark_as_matched(i, j):
-	all_pieces[i][j].matched = true
-	all_pieces[i][j].dim()
+	if all_pieces[i][j] != null:
+		all_pieces[i][j].matched = true
+		all_pieces[i][j].dim()
+	else:
+		print("Warning: Attempted to mark a null piece as matched at position (%d, %d)" % [i, j])
 
-# Destroy matched pieces
+# Modify the destroy_matched function
 func destroy_matched():
 	var was_matched = false
+	var points_earned = 0
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] != null and all_pieces[i][j].matched:
@@ -225,8 +304,15 @@ func destroy_matched():
 				if all_pieces[i][j].color == "blue":
 					blue_pieces_cleared += 1
 					update_blue_pieces_counter()
+				points_earned += all_pieces[i][j].piece_value * streak
+				print("Destroying piece at (%d, %d), value: %d" % [i, j, all_pieces[i][j].piece_value])
 				all_pieces[i][j].queue_free()
 				all_pieces[i][j] = null
+	
+	if points_earned > 0:
+		print("Total points earned: %d" % points_earned)
+		update_score(points_earned)
+	
 	move_checked = true
 	if was_matched:
 		get_parent().get_node("collapse_timer").start()
@@ -234,6 +320,36 @@ func destroy_matched():
 		swap_back()
 	
 	check_goal()
+
+# Update this function to use both score_label and score_bar
+func update_score(points):
+	if score_label and score_bar:
+		var current_score = int(score_label.text)
+		current_score += points
+		score_label.text = str(current_score)
+		score_bar.value = current_score
+		print("Score updated: ", current_score)  # Debug print
+	else:
+		print("Error: score_label or score_bar is null")
+
+# Modify the explode_bomb function
+func explode_bomb(i, j):
+	print("Exploding bomb at (%d, %d)" % [i, j])
+	var points_earned = 0
+	for x in range(max(0, i - 1), min(width, i + 2)):
+		for y in range(max(0, j - 1), min(height, j + 2)):
+			if all_pieces[x][y] != null:
+				if all_pieces[x][y].color == "blue":
+					blue_pieces_cleared += 1
+					update_blue_pieces_counter()
+				points_earned += all_pieces[x][y].piece_value * streak
+				all_pieces[x][y].queue_free()
+				all_pieces[x][y] = null
+	
+	if points_earned > 0:
+		update_score(points_earned)
+	
+	get_parent().get_node("collapse_timer").start()
 
 # New function to check if the goal has been reached
 func check_goal():
@@ -245,7 +361,7 @@ func check_game_over():
 		print("Game Over! Out of moves.")
 		show_game_over_screen()
 	elif blue_pieces_cleared >= BLUE_GOAL:
-		print("Level completed! You've cleared", blue_pieces_cleared, "blue pieces!")
+		print("Level completed! You've cleared %d blue pieces!" % blue_pieces_cleared)
 		show_win_screen()
 
 # Add this new function to show the game over screen
@@ -280,6 +396,7 @@ func refill_columns():
 				
 # Check for new matches after refill
 func after_refill():
+	streak += 1
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] != null and match_at(i, j, all_pieces[i][j].color):
@@ -288,7 +405,14 @@ func after_refill():
 				return
 	# If no new matches are found, switch state back to move
 	state = GameState.MOVE
+	streak = 1
 	move_checked = false
+
+func update_wallet_address():
+	if wallet_address_label:
+		var full_address = SolanaService.wallet.get_pubkey().to_string()
+		var shortened_address = full_address.substr(0, 4) + "xx" + full_address.substr(-4)
+		wallet_address_label.text = shortened_address
 
 # Add this new function to update the move counter display
 func update_move_counter():
@@ -311,3 +435,12 @@ func _on_collapse_timer_timeout():
 # Callback for refill timer timeout
 func _on_refill_timer_timeout():
 	refill_columns()
+
+
+func _on_back_button_pressed():
+	var main_menu_path = "res://Scenes/MainMenu.tscn"
+	if ResourceLoader.exists(main_menu_path):
+		print("Changing to MainMenu scene")  # Debug print
+		get_tree().change_scene_to_file(main_menu_path)
+	else:
+		print("Error: MainMenu scene not found at ", main_menu_path)
