@@ -1,0 +1,177 @@
+[gd_scene load_steps=7 format=3 uid="uid://c1b1vgcka45ej"]
+
+[ext_resource type="Script" path="res://Scripts/game_hub.gd" id="1_7ggaj"]
+[ext_resource type="Texture2D" uid="uid://cjdg5quk8ovvy" path="res://assets/placeholder/game_hub.png" id="1_avvrl"]
+[ext_resource type="Texture2D" uid="uid://d3ag5jo6t8xh5" path="res://assets/placeholder/turtle.png" id="3_2iojj"]
+[ext_resource type="Texture2D" uid="uid://blri67w6shj1m" path="res://assets/placeholder/game_icon.png" id="3_vkdjd"]
+[ext_resource type="Texture2D" uid="uid://jdj45uykpvff" path="res://assets/placeholder/biomarket.png" id="5_fmcrn"]
+[ext_resource type="Texture2D" uid="uid://bu5dwil4nevab" path="res://assets/white_panel.png" id="6_gs2in"]
+
+[node name="GameHub" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_7ggaj")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_avvrl")
+
+[node name="CharacterIcon" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 321.0
+offset_top = 501.0
+offset_right = 441.0
+offset_bottom = 628.0
+rotation = 0.0137099
+texture = ExtResource("3_2iojj")
+
+[node name="GameIcon" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 192.0
+offset_top = 645.0
+offset_right = 192.0
+offset_bottom = 645.0
+tooltip_text = "Bioreactor: Grow food"
+texture = ExtResource("3_vkdjd")
+
+[node name="MarketIcon" type="TextureRect" parent="."]
+z_index = 2
+layout_mode = 0
+offset_left = 41.0
+offset_top = 882.0
+offset_right = 141.0
+offset_bottom = 988.0
+tooltip_text = "Biomarket: Trade points for chests"
+texture = ExtResource("5_fmcrn")
+
+[node name="HUDIcon" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -168.0
+offset_top = 30.0
+offset_right = -91.0
+offset_bottom = 89.0
+grow_horizontal = 0
+
+[node name="Silica" type="VBoxContainer" parent="HUDIcon"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="HUDIcon/Silica"]
+layout_mode = 2
+
+[node name="SilicaPointsCounter" type="Label" parent="HUDIcon/Silica"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "0
+"
+
+[node name="Metal" type="VBoxContainer" parent="HUDIcon"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="HUDIcon/Metal"]
+layout_mode = 2
+
+[node name="MetalPointsCounter" type="Label" parent="HUDIcon/Metal"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "0
+"
+
+[node name="Crystal" type="VBoxContainer" parent="HUDIcon"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="HUDIcon/Crystal"]
+layout_mode = 2
+
+[node name="CrystalPointsCounter" type="Label" parent="HUDIcon/Crystal"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "0
+"
+
+[node name="Algae" type="VBoxContainer" parent="HUDIcon"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="HUDIcon/Algae"]
+layout_mode = 2
+
+[node name="TotalPointsCounter" type="Label" parent="HUDIcon/Algae"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "0
+"
+
+[node name="BottomPanel" type="TextureRect" parent="."]
+z_index = 1
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = -152.0
+offset_right = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1, 0.96)
+texture = ExtResource("6_gs2in")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StartButton" type="Button" parent="."]
+z_index = 2
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -42.0
+offset_top = -108.0
+offset_right = 4.0
+offset_bottom = -77.0
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.72478, 1.7544)
+text = "Start"
+
+[node name="GiveawaySquare" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -42.0
+offset_top = -294.0
+offset_right = -2.0
+offset_bottom = -254.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="GiveawayButton" type="Button" parent="GiveawaySquare"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -117.0
+offset_right = 7.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Button for giveaway
+"
+
+[connection signal="pressed" from="StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="GiveawaySquare/GiveawayButton" to="." method="_on_giveaway_button_pressed"]

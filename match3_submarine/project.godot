@@ -18,6 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 SolanaService="*res://addons/SolanaSDK/Autoload/SolanaService.tscn"
+Global="*res://global.gd"
 
 [display]
 

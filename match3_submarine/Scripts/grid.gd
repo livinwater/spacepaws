@@ -45,10 +45,14 @@ var score_bar: TextureProgressBar
 var streak = 1
 var max_score = 500
 
+# Add this variable at the top of the script
+var current_game_score: int = 0
 
 var bomb_piece = preload("res://Scenes/bomb_piece.tscn")
+const PopupScene = preload("res://Scenes/WinPopup.tscn")
 
 func _ready():
+	print("Grid script _ready function called")
 	state = GameState.MOVE
 	var back_button = $BackButton
 	if back_button:
@@ -83,6 +87,20 @@ func _ready():
 	else:
 		print("Error: ScoreProgressBar not found")
 
+	# Check UI elements
+	wallet_address_label = get_node("../WalletContainer/WalletAddressLabel")
+	print("Wallet address label found: ", wallet_address_label != null)
+	
+	score_label = get_node("../MarginTotalScore/PanelScoreCounter/ScoreContainer/ScoreValueLabel")
+	print("Score label found: ", score_label != null)
+	
+	score_bar = get_node("../MarginTotalScore/PanelScoreCounter/ScoreContainer/ScoreProgressBar")
+	print("Score bar found: ", score_bar != null)
+
+	# Initialize the current game score to 0
+	current_game_score = 0
+	update_score_display()
+
 # New function to center the grid
 func center_grid():
 	var screen_size = get_viewport_rect().size
@@ -100,7 +118,7 @@ func restricted_movement(place):
 # Update this function
 func update_blue_pieces_counter():
 	if goal_counter_box:
-		var pieces_left = BLUE_GOAL - blue_pieces_cleared
+		var pieces_left = max(0, BLUE_GOAL - blue_pieces_cleared)  # Ensure it doesn't go negative
 		goal_counter_box.get_node("CounterLabel").text = "x " + str(pieces_left)
 
 func make_2D_array():
@@ -183,6 +201,16 @@ func swap_pieces(column, row, direction):
 			update_move_counter()
 			check_game_over()
 
+func check_game_over():
+	if moves_left <= 0:
+		print("Game Over! Out of moves.")
+		Global.add_points(current_game_score)  # Add the current game score to the total
+		show_game_over_screen()
+	elif blue_pieces_cleared >= BLUE_GOAL:
+		print("Level completed! You've cleared %d blue pieces!" % blue_pieces_cleared)
+		Global.add_points(current_game_score)  # Add the current game score to the total
+		show_win_popup()
+		
 # Store information for swap back
 func store_info(first_piece, other_piece, place, direction):
 	piece_one = first_piece
@@ -321,57 +349,51 @@ func destroy_matched():
 	
 	check_goal()
 
-# Update this function to use both score_label and score_bar
+# Modify the update_score function
 func update_score(points):
 	if score_label and score_bar:
-		var current_score = int(score_label.text)
-		current_score += points
-		score_label.text = str(current_score)
-		score_bar.value = current_score
-		print("Score updated: ", current_score)  # Debug print
+		current_game_score += points
+		score_label.text = str(current_game_score)
+		score_bar.value = current_game_score
+		print("Current game score updated: ", current_game_score)  # Debug print
 	else:
 		print("Error: score_label or score_bar is null")
 
-# Modify the explode_bomb function
-func explode_bomb(i, j):
-	print("Exploding bomb at (%d, %d)" % [i, j])
-	var points_earned = 0
-	for x in range(max(0, i - 1), min(width, i + 2)):
-		for y in range(max(0, j - 1), min(height, j + 2)):
-			if all_pieces[x][y] != null:
-				if all_pieces[x][y].color == "blue":
-					blue_pieces_cleared += 1
-					update_blue_pieces_counter()
-				points_earned += all_pieces[x][y].piece_value * streak
-				all_pieces[x][y].queue_free()
-				all_pieces[x][y] = null
-	
-	if points_earned > 0:
-		update_score(points_earned)
-	
-	get_parent().get_node("collapse_timer").start()
+# Add this new function to update the score display
+func update_score_display():
+	if score_label and score_bar:
+		score_label.text = str(current_game_score)
+		score_bar.value = current_game_score
+	else:
+		print("Error: score_label or score_bar is null")
 
 # New function to check if the goal has been reached
 func check_goal():
-	check_game_over()
-
-# Add this new function to check if the game is over
-func check_game_over():
-	if moves_left <= 0:
-		print("Game Over! Out of moves.")
-		show_game_over_screen()
-	elif blue_pieces_cleared >= BLUE_GOAL:
+	if blue_pieces_cleared >= BLUE_GOAL:
 		print("Level completed! You've cleared %d blue pieces!" % blue_pieces_cleared)
-		show_win_screen()
+		Global.add_points(current_game_score)  # Add the current game score to the total
+		show_win_popup()
+
+func show_win_popup():
+	print("Showing win popup")  # Debug print
+	var win_popup = get_node_or_null("WinPopup")
+	if not win_popup:
+		win_popup = PopupScene.instantiate()
+		add_child(win_popup)
+	Global.add_points(current_game_score)  # Add this line to save the points
+	win_popup.set_score(current_game_score)
+	win_popup.popup.popup_centered()
+	get_tree().paused = true
 
 # Add this new function to show the game over screen
 func show_game_over_screen():
+	Global.add_points(current_game_score)  # Add this line to save the points even on game over
 	var game_over_screen = preload("res://Scenes/GameOverScreen.tscn").instantiate()
 	get_tree().root.add_child(game_over_screen)
 
-func show_win_screen():
-	var win_screen = preload("res://Scenes/WinScreen.tscn").instantiate()
-	get_tree().root.add_child(win_screen)
+# Add this function to resume the game when continuing
+func resume_game():
+	get_tree().paused = false
 
 # Collapse columns after match
 func collapse_columns():
@@ -409,15 +431,33 @@ func after_refill():
 	move_checked = false
 
 func update_wallet_address():
+	print("Updating wallet address")
 	if wallet_address_label:
-		var full_address = SolanaService.wallet.get_pubkey().to_string()
-		var shortened_address = full_address.substr(0, 4) + "xx" + full_address.substr(-4)
-		wallet_address_label.text = shortened_address
+		var full_address = Global.get_wallet_address()
+		print("Full address from Global: ", full_address)
+		if full_address and full_address != "":
+			var shortened_address = full_address.substr(0, 4) + "xx" + full_address.substr(-4)
+			wallet_address_label.text = shortened_address
+			print("Wallet address updated to: ", shortened_address)
+		else:
+			wallet_address_label.text = "Not connected"
+			print("Wallet not connected")
+	else:
+		print("wallet_address_label not found")
 
 # Add this new function to update the move counter display
 func update_move_counter():
 	if move_counter_label:
 		move_counter_label.text = str(moves_left)
+
+# Add a new function to update the points display:
+func update_points_display():
+	if score_label and score_bar:
+		var current_score = Global.get_total_points()
+		score_label.text = str(current_score)
+		score_bar.value = current_score
+	else:
+		print("Error: score_label or score_bar is null")
 
 # Process function to handle state and touch input
 func _process(delta):
@@ -438,9 +478,43 @@ func _on_refill_timer_timeout():
 
 
 func _on_back_button_pressed():
-	var main_menu_path = "res://Scenes/MainMenu.tscn"
-	if ResourceLoader.exists(main_menu_path):
-		print("Changing to MainMenu scene")  # Debug print
-		get_tree().change_scene_to_file(main_menu_path)
+	var game_hub_path = "res://Scenes/GameHub.tscn"
+	if ResourceLoader.exists(game_hub_path):
+		print("Changing to GameHub scene")  # Debug print
+		get_tree().change_scene_to_file(game_hub_path)
 	else:
-		print("Error: MainMenu scene not found at ", main_menu_path)
+		print("Error: GameHub scene not found at ", game_hub_path)
+
+# Add this function to your grid.gd script
+func explode_bomb(i, j):
+	print("Exploding bomb at (%d, %d)" % [i, j])
+	var points_earned = 0
+	for x in range(max(0, i - 1), min(width, i + 2)):
+		for y in range(max(0, j - 1), min(height, j + 2)):
+			if all_pieces[x][y] != null:
+				if all_pieces[x][y].color == "blue":
+					blue_pieces_cleared += 1
+					update_blue_pieces_counter()
+				points_earned += all_pieces[x][y].piece_value * streak
+				all_pieces[x][y].queue_free()
+				all_pieces[x][y] = null
+	
+	if points_earned > 0:
+		update_score(points_earned)
+	
+	get_parent().get_node("collapse_timer").start()
+
+# Override _input function to handle input when the game is paused
+func _input(event):
+	if get_tree().paused:
+		if event is InputEventMouseButton and event.pressed:
+			var win_popup = get_node_or_null("WinPopup")
+			if win_popup:
+				win_popup._input(event)
+
+func _unhandled_input(event):
+	if get_tree().paused:
+		var win_popup = get_node_or_null("WinPopup")
+		if win_popup and win_popup.visible:
+			print("Passing input to WinPopup from grid")
+			win_popup._input(event)

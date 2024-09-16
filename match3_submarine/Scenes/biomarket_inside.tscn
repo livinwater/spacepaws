@@ -1,0 +1,70 @@
+[gd_scene load_steps=5 format=3 uid="uid://cu6owu6bck0lj"]
+
+[ext_resource type="Texture2D" uid="uid://jv47w5fxtuog" path="res://assets/placeholder/biomarket_inside.png" id="1_d570d"]
+[ext_resource type="Script" path="res://Scripts/biomarket_inside.gd" id="1_t6l4l"]
+[ext_resource type="Texture2D" uid="uid://bsv4t6g3vwfqu" path="res://assets/placeholder/shopkeeper.png" id="2_tfgpx"]
+[ext_resource type="Texture2D" uid="uid://dmloankcv1lcl" path="res://assets/placeholder/chest.png" id="4_m0dej"]
+
+[node name="BioMarketInside" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_t6l4l")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_d570d")
+
+[node name="ShopKeeper" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 214.0
+offset_top = 550.0
+offset_right = 514.0
+offset_bottom = 812.0
+scale = Vector2(1, 1.333)
+tooltip_text = "Grumpy shopkeeper, get his attention"
+texture = ExtResource("2_tfgpx")
+
+[node name="TotalPointsCounter" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -193.0
+offset_top = 47.0
+offset_right = -42.0
+offset_bottom = 102.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 40
+text = "Points: 0
+"
+
+[node name="ChestRect" type="TextureButton" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 151.0
+offset_top = 483.0
+offset_right = 347.0
+offset_bottom = 603.0
+rotation = 0.00934459
+texture_normal = ExtResource("4_m0dej")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Chest" type="Button" parent="."]
+layout_mode = 0
+offset_left = 146.0
+offset_top = 402.0
+offset_right = 350.0
+offset_bottom = 530.0
+icon = ExtResource("4_m0dej")
+
+[connection signal="pressed" from="Chest" to="." method="_on_chest_pressed"]
