@@ -1,14 +1,31 @@
-[gd_scene load_steps=2 format=3 uid="uid://c58wipcij23s"]
+[gd_scene load_steps=5 format=3 uid="uid://c58wipcij23s"]
 
 [ext_resource type="Script" path="res://Scripts/piece.gd" id="1_m3t0l"]
+[ext_resource type="Texture2D" uid="uid://dmgcxrxp3v2a2" path="res://assets/row_bomb.png" id="2_7or0j"]
+[ext_resource type="Texture2D" uid="uid://khgkykkxvlco" path="res://assets/column_bomb.png" id="3_k7shk"]
+[ext_resource type="Texture2D" uid="uid://d1hurfsdxfago" path="res://assets/Match 3 Assets/Pieces/Orange Adjacent.png" id="4_npxtk"]
 
 [node name="Piece" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 488.0
+offset_top = 274.0
+offset_right = 488.0
+offset_bottom = 274.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_m3t0l")
+row_texture = ExtResource("2_7or0j")
+column_texture = ExtResource("3_k7shk")
+adjacent_texture = ExtResource("4_npxtk")
 
 [node name="Sprite" type="Sprite2D" parent="."]
+
+[node name="ColorRect" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+color = Color(0.94902, 0.898039, 0.768627, 1)

@@ -26,6 +26,7 @@ grow_vertical = 2
 texture = ExtResource("1_avvrl")
 
 [node name="CharacterIcon" type="TextureRect" parent="."]
+modulate = Color(0, 0, 0, 0.501961)
 layout_mode = 0
 offset_left = 321.0
 offset_top = 501.0
@@ -35,11 +36,12 @@ rotation = 0.0137099
 texture = ExtResource("3_2iojj")
 
 [node name="GameIcon" type="TextureRect" parent="."]
+modulate = Color(0, 0, 0, 0.501961)
 layout_mode = 0
-offset_left = 192.0
-offset_top = 645.0
-offset_right = 192.0
-offset_bottom = 645.0
+offset_left = 191.0
+offset_top = 650.0
+offset_right = 271.0
+offset_bottom = 763.0
 tooltip_text = "Bioreactor: Grow food"
 texture = ExtResource("3_vkdjd")
 

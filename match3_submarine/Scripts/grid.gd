@@ -12,6 +12,7 @@ var state
 @export var y_offset: int
 @export var empty_spaces : PackedVector2Array
 @export var piece_value: int
+@onready var grid_background: TileMapLayer = get_node("../GridBackground")
 
 var possible_pieces = [
 	preload("res://Scenes/blue_piece.tscn"),
@@ -21,6 +22,7 @@ var possible_pieces = [
 ]
 
 var all_pieces = []
+var current_matches = []
 
 var first_touch = Vector2(0,0)
 var final_touch = Vector2(0,0)
@@ -49,10 +51,9 @@ var max_score = 500
 var current_game_score: int = 0
 
 var bomb_piece = preload("res://Scenes/bomb_piece.tscn")
-const PopupScene = preload("res://Scenes/WinPopup.tscn")
+var PopupScene = preload("res://Scenes/WinPopup.tscn")
 
 func _ready():
-	print("Grid script _ready function called")
 	state = GameState.MOVE
 	var back_button = $BackButton
 	if back_button:
@@ -60,6 +61,8 @@ func _ready():
 	randomize()
 	all_pieces = make_2D_array()
 	center_grid()  # Call this before spawning pieces
+	create_grid_background()
+
 	spawn_pieces()
 	
 	# Get reference to the GoalCounterBox node
@@ -108,6 +111,16 @@ func center_grid():
 	var grid_height = height * offset
 	x_start = (screen_size.x - grid_width) / 2
 	y_start = screen_size.y - (screen_size.y - grid_height) / 2
+
+func create_grid_background():
+	if grid_background:
+		for i in width:
+			for j in height:
+				if not restricted_movement(Vector2(i, j)):
+					grid_background.set_cell(Vector2i(i, j), 0, Vector2i(0, 0))
+	else:
+		print("Error: GridBackground node not found")
+
 
 func restricted_movement(place):
 	for i in empty_spaces.size():
@@ -195,6 +208,14 @@ func swap_pieces(column, row, direction):
 		all_pieces[column + direction.x][row + direction.y] = first_piece
 		first_piece.move(grid_to_pixel(column + direction.x, row + direction.y))
 		other_piece.move(grid_to_pixel(column, row))
+		
+		if first_piece.is_bomb or other_piece.is_bomb:
+			print("DEBUG: Bomb involved in swap")
+			if first_piece.is_bomb:
+				activate_bomb(column + direction.x, row + direction.y)
+			if other_piece.is_bomb:
+				activate_bomb(column, row)
+		
 		if not move_checked:
 			find_matches()
 			moves_left -= 1
@@ -203,11 +224,9 @@ func swap_pieces(column, row, direction):
 
 func check_game_over():
 	if moves_left <= 0:
-		print("Game Over! Out of moves.")
 		Global.add_points(current_game_score)  # Add the current game score to the total
 		show_game_over_screen()
 	elif blue_pieces_cleared >= BLUE_GOAL:
-		print("Level completed! You've cleared %d blue pieces!" % blue_pieces_cleared)
 		Global.add_points(current_game_score)  # Add the current game score to the total
 		show_win_popup()
 		
@@ -251,7 +270,7 @@ func find_matches():
 				else:
 					check_match(i, j)
 	get_parent().get_node("destroy_timer").start()
-	
+
 # Helper function to check for matches in a specific position
 func check_match(i, j):
 	if all_pieces[i][j] == null or all_pieces[i][j].is_bomb:
@@ -279,18 +298,17 @@ func check_match(i, j):
 		for k in range(i, i + horizontal_matches):
 			if k >= 0 and k < width:
 				mark_as_matched(k, j)
-		print("Horizontal match at (%d, %d): %d pieces" % [i, j, horizontal_matches])
+				add_to_array(Vector2(k, j))
+		print("Horizontal match found: %d pieces" % horizontal_matches)
 	elif vertical_matches >= 3:
 		for k in range(j, j + vertical_matches):
 			if k >= 0 and k < height:
 				mark_as_matched(i, k)
-		print("Vertical match at (%d, %d): %d pieces" % [i, j, vertical_matches])
-
-	print("Matches at (%d, %d): horizontal = %d, vertical = %d" % [i, j, horizontal_matches, vertical_matches])
+				add_to_array(Vector2(i, k))
+		print("Vertical match found: %d pieces" % vertical_matches)
 
 # New function to create a bomb
 func create_bomb(i, j):
-	print("Attempting to create bomb at (%d, %d)" % [i, j])
 	if all_pieces[i][j] != null:
 		all_pieces[i][j].queue_free()
 	var bomb = bomb_piece.instantiate()
@@ -300,12 +318,60 @@ func create_bomb(i, j):
 	bomb.matched = false
 	bomb.is_bomb = true
 	bomb.connect("input_event", Callable(self, "_on_bomb_clicked").bind(i, j))
-	print("Bomb created at position (%d, %d)" % [i, j])
+
+func make_bomb(bomb_type, color):
+	var bomb_position = Vector2.ZERO
+	# Find the first matched piece to place the bomb
+	for match_pos in current_matches:
+		if all_pieces[match_pos.x][match_pos.y] != null and all_pieces[match_pos.x][match_pos.y].color == color:
+			bomb_position = match_pos
+			break
+	
+	print("DEBUG: Attempting to create bomb at position: ", bomb_position)
+	if bomb_position.x >= 0 and bomb_position.x < width and bomb_position.y >= 0 and bomb_position.y < height:
+		if all_pieces[bomb_position.x][bomb_position.y] != null and all_pieces[bomb_position.x][bomb_position.y].color == color:
+			print("DEBUG: Creating bomb of type ", bomb_type, " at position: ", bomb_position)
+			all_pieces[bomb_position.x][bomb_position.y].matched = false
+			change_bomb(bomb_type, all_pieces[bomb_position.x][bomb_position.y])
+			# Remove the piece from current_matches to prevent it from being destroyed
+			var piece_index = current_matches.find(bomb_position)
+			if piece_index != -1:
+				current_matches.remove_at(piece_index)
+			return true
+	print("DEBUG: Failed to create bomb at position: ", bomb_position)
+	return false
+
+func change_bomb(bomb_type, piece):
+	if bomb_type == 0:
+		piece.make_adjacent_bomb()
+	elif bomb_type == 1:
+		piece.make_row_bomb()
+	elif bomb_type == 2:
+		piece.make_column_bomb()
+	# Remove the piece from current_matches to prevent it from being destroyed
+	var piece_index = current_matches.find(Vector2(piece.get_parent().get_index(), piece.get_index()))
+	if piece_index != -1:
+		current_matches.remove_at(piece_index)
+
+func match_all_in_column(column):
+	if column < 0 or column >= width:
+		print("Invalid column index: ", column)
+		return
+	for i in range(height):
+		if all_pieces[column][i] != null:
+			all_pieces[column][i].matched = true
+
+func match_all_in_row(row):
+	if row < 0 or row >= height:
+		print("Invalid row index: ", row)
+		return
+	for i in range(width):
+		if all_pieces[i][row] != null:
+			all_pieces[i][row].matched = true
 
 # Add this new function to handle bomb clicks
 func _on_bomb_clicked(viewport, event, shape_idx, i, j):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		print("Bomb clicked at (%d, %d)" % [i, j])
 		explode_bomb(i, j)
 		find_matches()
 
@@ -318,27 +384,69 @@ func mark_as_matched(i, j):
 	if all_pieces[i][j] != null:
 		all_pieces[i][j].matched = true
 		all_pieces[i][j].dim()
-	else:
-		print("Warning: Attempted to mark a null piece as matched at position (%d, %d)" % [i, j])
+
+func find_bombs():
+	print("DEBUG: Entering find_bombs function")
+	print("Current matches: ", current_matches)
+	for i in current_matches.size():
+		var current_column = current_matches[i].x
+		var current_row = current_matches[i].y
+		print("DEBUG: Checking match at (%d, %d)" % [current_column, current_row])
+		if all_pieces[current_column][current_row] != null:
+			var current_color = all_pieces[current_column][current_row].color
+			var col_matched = 0
+			var row_matched = 0
+			for j in current_matches.size():
+				var this_column = current_matches[j].x
+				var this_row = current_matches[j].y
+				if all_pieces[this_column][this_row] != null:
+					var this_color = all_pieces[this_column][this_row].color
+					if this_column == current_column and this_color == current_color:
+						col_matched += 1
+					if this_row == current_row and this_color == current_color:
+						row_matched += 1
+			print("DEBUG: Matches found: col_matched = %d, row_matched = %d" % [col_matched, row_matched])
+			if col_matched == 4:
+				print("DEBUG: Attempting to create column bomb")
+				if make_bomb(2, current_color):  # 2 for column bomb
+					return
+			elif row_matched == 4:
+				print("DEBUG: Attempting to create row bomb")
+				if make_bomb(1, current_color):  # 1 for row bomb
+					return
+			elif col_matched == 3 and row_matched == 3:
+				print("DEBUG: Attempting to create adjacent bomb")
+				if make_bomb(0, current_color):  # 0 for adjacent bomb
+					return
+			elif col_matched == 5 or row_matched == 5:
+				print("DEBUG: Attempting to create color bomb")
+				# Implement color bomb creation here
+		else:
+			print("DEBUG: Null piece found at (%d, %d)" % [current_column, current_row])
+	print("DEBUG: Exiting find_bombs function")
 
 # Modify the destroy_matched function
 func destroy_matched():
+	find_bombs()  
 	var was_matched = false
 	var points_earned = 0
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] != null and all_pieces[i][j].matched:
-				was_matched = true
-				if all_pieces[i][j].color == "blue":
-					blue_pieces_cleared += 1
-					update_blue_pieces_counter()
-				points_earned += all_pieces[i][j].piece_value * streak
-				print("Destroying piece at (%d, %d), value: %d" % [i, j, all_pieces[i][j].piece_value])
-				all_pieces[i][j].queue_free()
-				all_pieces[i][j] = null
+				if not all_pieces[i][j].is_bomb:  # Only destroy non-bomb pieces
+					was_matched = true
+					if all_pieces[i][j].color == "blue":
+						blue_pieces_cleared += 1
+						update_blue_pieces_counter()
+					points_earned += all_pieces[i][j].piece_value * streak
+					all_pieces[i][j].queue_free()
+					all_pieces[i][j] = null
+				else:
+					# For bombs, just reset the matched state
+					print("DEBUG: Bomb found at (%d, %d), resetting matched state" % [i, j])
+					all_pieces[i][j].matched = false
 	
 	if points_earned > 0:
-		print("Total points earned: %d" % points_earned)
 		update_score(points_earned)
 	
 	move_checked = true
@@ -346,43 +454,41 @@ func destroy_matched():
 		get_parent().get_node("collapse_timer").start()
 	else:
 		swap_back()
-	
+	current_matches.clear()
 	check_goal()
 
+func add_to_array(value, array_to_add = current_matches):
+	if !array_to_add.has(value):
+		array_to_add.append(value)
+		
 # Modify the update_score function
 func update_score(points):
 	if score_label and score_bar:
 		current_game_score += points
 		score_label.text = str(current_game_score)
 		score_bar.value = current_game_score
-		print("Current game score updated: ", current_game_score)  # Debug print
-	else:
-		print("Error: score_label or score_bar is null")
 
 # Add this new function to update the score display
 func update_score_display():
 	if score_label and score_bar:
 		score_label.text = str(current_game_score)
 		score_bar.value = current_game_score
-	else:
-		print("Error: score_label or score_bar is null")
 
 # New function to check if the goal has been reached
 func check_goal():
 	if blue_pieces_cleared >= BLUE_GOAL:
-		print("Level completed! You've cleared %d blue pieces!" % blue_pieces_cleared)
 		Global.add_points(current_game_score)  # Add the current game score to the total
-		show_win_popup()
+		get_parent().get_node("win_timer").start()
 
 func show_win_popup():
-	print("Showing win popup")  # Debug print
-	var win_popup = get_node_or_null("WinPopup")
-	if not win_popup:
-		win_popup = PopupScene.instantiate()
-		add_child(win_popup)
-	Global.add_points(current_game_score)  # Add this line to save the points
-	win_popup.set_score(current_game_score)
-	win_popup.popup.popup_centered()
+	var win_screen = get_node_or_null("WinPopup")
+	if not win_screen:
+		var WinScreenScene = preload("res://Scenes/WinPopup.tscn")
+		win_screen = WinScreenScene.instantiate()
+		add_child(win_screen)
+	Global.add_points(current_game_score)
+	win_screen.set_score(current_game_score)
+	win_screen.visible = true
 	get_tree().paused = true
 
 # Add this new function to show the game over screen
@@ -395,55 +501,106 @@ func show_game_over_screen():
 func resume_game():
 	get_tree().paused = false
 
-# Collapse columns after match
+# Modify the collapse_columns function
 func collapse_columns():
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] == null and !restricted_movement(Vector2(i,j)):
 				for k in range(j + 1, height):
 					if all_pieces[i][k] != null:
-						all_pieces[i][k].move(grid_to_pixel(i, j))
-						all_pieces[i][j] = all_pieces[i][k]
-						all_pieces[i][k] = null
-						break
+						if all_pieces[i][k].is_bomb:
+							print("DEBUG: Moving bomb from (%d, %d) to (%d, %d)" % [i, k, i, j])
+							# Swap bombs with empty spaces below them
+							all_pieces[i][j] = all_pieces[i][k]
+							all_pieces[i][k] = null
+							all_pieces[i][j].move(grid_to_pixel(i, j))
+							break
+						else:
+							print("DEBUG: Moving piece from (%d, %d) to (%d, %d)" % [i, k, i, j])
+							all_pieces[i][k].move(grid_to_pixel(i, j))
+							all_pieces[i][j] = all_pieces[i][k]
+							all_pieces[i][k] = null
+							break
 	get_parent().get_node("refill_timer").start()
 
-# Refill the grid after collapsing
+# Modify the refill_columns function
 func refill_columns():
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] == null and !restricted_movement(Vector2(i,j)):
-				all_pieces[i][j] = create_random_piece(i, j)
-	after_refill()
+				# Check if there's a bomb above
+				var bomb_above = false
+				for k in range(j + 1, height):
+					if all_pieces[i][k] != null and all_pieces[i][k].is_bomb:
+						print("DEBUG: Moving bomb from (%d, %d) to (%d, %d) during refill" % [i, k, i, j])
+						all_pieces[i][j] = all_pieces[i][k]
+						all_pieces[i][k] = null
+						all_pieces[i][j].move(grid_to_pixel(i, j))
+						bomb_above = true
+						break
 				
-# Check for new matches after refill
+				if not bomb_above:
+					print("DEBUG: Creating new piece at (%d, %d)" % [i, j])
+					all_pieces[i][j] = create_random_piece(i, j)
+	after_refill()
+
+# Modify the after_refill function
 func after_refill():
 	streak += 1
+	var match_found = false
+	var bombs_present = false
+	
 	for i in width:
 		for j in height:
-			if all_pieces[i][j] != null and match_at(i, j, all_pieces[i][j].color):
-				find_matches()
-				get_parent().get_node("destroy_timer").start()
-				return
-	# If no new matches are found, switch state back to move
-	state = GameState.MOVE
-	streak = 1
-	move_checked = false
+			if all_pieces[i][j] != null:
+				if all_pieces[i][j].is_bomb:
+					print("DEBUG: Bomb found at (%d, %d) after refill" % [i, j])
+					bombs_present = true
+				elif match_at(i, j, all_pieces[i][j].color):
+					match_found = true
+					find_matches()
+					break
+		if match_found:
+			break
+	
+	if match_found:
+		get_parent().get_node("destroy_timer").start()
+	elif bombs_present:
+		print("DEBUG: Bombs present, but not activating automatically")
+		state = GameState.MOVE
+		streak = 1
+		move_checked = false
+	else:
+		state = GameState.MOVE
+		streak = 1
+		move_checked = false
+		check_goal()
+
+# Modify the activate_bomb function
+func activate_bomb(i, j):
+	var bomb = all_pieces[i][j]
+	print("DEBUG: Activating bomb at (%d, %d)" % [i, j])
+	if bomb.is_row_bomb:
+		print("DEBUG: Activating row bomb")
+		match_all_in_row(j)
+	elif bomb.is_column_bomb:
+		print("DEBUG: Activating column bomb")
+		match_all_in_column(i)
+	elif bomb.is_adjacent_bomb:
+		print("DEBUG: Activating adjacent bomb")
+		match_adjacent(i, j)
+	bomb.queue_free()
+	all_pieces[i][j] = null
+	find_matches()
 
 func update_wallet_address():
-	print("Updating wallet address")
 	if wallet_address_label:
 		var full_address = Global.get_wallet_address()
-		print("Full address from Global: ", full_address)
 		if full_address and full_address != "":
 			var shortened_address = full_address.substr(0, 4) + "xx" + full_address.substr(-4)
 			wallet_address_label.text = shortened_address
-			print("Wallet address updated to: ", shortened_address)
 		else:
 			wallet_address_label.text = "Not connected"
-			print("Wallet not connected")
-	else:
-		print("wallet_address_label not found")
 
 # Add this new function to update the move counter display
 func update_move_counter():
@@ -456,8 +613,6 @@ func update_points_display():
 		var current_score = Global.get_total_points()
 		score_label.text = str(current_score)
 		score_bar.value = current_score
-	else:
-		print("Error: score_label or score_bar is null")
 
 # Process function to handle state and touch input
 func _process(delta):
@@ -480,14 +635,10 @@ func _on_refill_timer_timeout():
 func _on_back_button_pressed():
 	var game_hub_path = "res://Scenes/GameHub.tscn"
 	if ResourceLoader.exists(game_hub_path):
-		print("Changing to GameHub scene")  # Debug print
 		get_tree().change_scene_to_file(game_hub_path)
-	else:
-		print("Error: GameHub scene not found at ", game_hub_path)
 
 # Add this function to your grid.gd script
 func explode_bomb(i, j):
-	print("Exploding bomb at (%d, %d)" % [i, j])
 	var points_earned = 0
 	for x in range(max(0, i - 1), min(width, i + 2)):
 		for y in range(max(0, j - 1), min(height, j + 2)):
@@ -516,5 +667,31 @@ func _unhandled_input(event):
 	if get_tree().paused:
 		var win_popup = get_node_or_null("WinPopup")
 		if win_popup and win_popup.visible:
-			print("Passing input to WinPopup from grid")
 			win_popup._input(event)
+
+# Add this function near the top of the script
+func _on_bomb_moved(bomb_type, column, row):
+	if bomb_type == "row":
+		match_all_in_row(row)
+	elif bomb_type == "column":
+		match_all_in_column(column)
+	elif bomb_type == "adjacent":
+		match_adjacent(column, row)
+	destroy_matched()
+	get_parent().get_node("collapse_timer").start()
+
+# Add this new function
+func match_adjacent(column, row):
+	for i in range(max(0, column - 1), min(width, column + 2)):
+		for j in range(max(0, row - 1), min(height, row + 2)):
+			if all_pieces[i][j] != null:
+				all_pieces[i][j].matched = true
+
+
+func _on_win_timer_timeout() -> void:
+	if state == GameState.MOVE:
+		Global.add_points(current_game_score)
+		show_win_popup()
+	else:
+		# If the state isn't MOVE yet, wait a bit longer
+		get_parent().get_node("win_timer").start()

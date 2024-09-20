@@ -1,11 +1,11 @@
 [gd_scene load_steps=3 format=3 uid="uid://cktli5iy4vmga"]
 
 [ext_resource type="PackedScene" uid="uid://c58wipcij23s" path="res://Scenes/Piece.tscn" id="1_odnkj"]
-[ext_resource type="Texture2D" uid="uid://bpyiro7rxoa7a" path="res://assets/coloredBoxes/box3.png" id="2_me2uq"]
+[ext_resource type="Texture2D" uid="uid://bxgxvmctw3ar7" path="res://assets/red_piece_algae.png" id="2_6rbyg"]
 
 [node name="red_piece" instance=ExtResource("1_odnkj")]
 color = "red"
 
 [node name="Sprite" parent="." index="0"]
 scale = Vector2(0.5, 0.5)
-texture = ExtResource("2_me2uq")
+texture = ExtResource("2_6rbyg")
