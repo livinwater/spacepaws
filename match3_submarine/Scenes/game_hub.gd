@@ -41,12 +41,7 @@ func _on_icon_input(event, icon_name: String):
 			# Add more cases as needed
 
 func load_game():
-	var game_window_path = "res://Scenes/game_window.tscn"
-	if ResourceLoader.exists(game_window_path):
-		print("Loading game scene")
-		get_tree().change_scene_to_file(game_window_path)
-	else:
-		print("Error: game_window.tscn not found at ", game_window_path)
+	Global.load_level(1)  # Start from level 1
 
 func load_biomarket():
 	var biomarket_path = "res://Scenes/biomarket_inside.tscn"

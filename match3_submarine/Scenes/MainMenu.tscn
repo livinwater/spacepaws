@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://eqg28oca3p3r"]
 
 [ext_resource type="Script" path="res://Scripts/main_menu.gd" id="1_hg06t"]
-[ext_resource type="Texture2D" uid="uid://b2fualbeinn4s" path="res://assets/mainmenu1.png" id="2_0ha8v"]
+[ext_resource type="Texture2D" uid="uid://darbsg0c40uwn" path="res://assets/background_main2.png" id="2_iuguc"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -16,7 +16,7 @@ script = ExtResource("1_hg06t")
 layout_mode = 0
 offset_right = 576.0
 offset_bottom = 1024.0
-texture = ExtResource("2_0ha8v")
+texture = ExtResource("2_iuguc")
 
 [node name="ConnectWallet" type="Button" parent="."]
 layout_mode = 1

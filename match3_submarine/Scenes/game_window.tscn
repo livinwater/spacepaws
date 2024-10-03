@@ -1,13 +1,13 @@
-[gd_scene load_steps=12 format=3 uid="uid://cfbi8wsurrgj5"]
+[gd_scene load_steps=10 format=3 uid="uid://cfbi8wsurrgj5"]
 
-[ext_resource type="Texture2D" uid="uid://dbygg4lf5wbkr" path="res://assets/placeholder/background.png" id="1_0rot5"]
+[ext_resource type="Texture2D" uid="uid://buaidmyot8tr" path="res://assets/game_background.png" id="1_43ec6"]
 [ext_resource type="Texture2D" uid="uid://bb1ldkhirojqk" path="res://assets/placeholder/top_ui3.png" id="2_kjccp"]
 [ext_resource type="Texture2D" uid="uid://xumkhuv7uuaa" path="res://assets/placeholder/bottom_ui2.png" id="3_udyfn"]
 [ext_resource type="Script" path="res://Scripts/grid.gd" id="4_2peo4"]
 [ext_resource type="Texture2D" uid="uid://67300byowlxo" path="res://assets/blue_piece_algae.png" id="5_4hmgw"]
 [ext_resource type="Texture2D" uid="uid://bxtlmr5cuyufw" path="res://assets/Match 3 Assets/UI/Score Bar Background.png" id="6_a4fdf"]
 [ext_resource type="Texture2D" uid="uid://bcnqax51grxui" path="res://assets/Match 3 Assets/UI/Score Bar Fill.png" id="7_uan1c"]
-[ext_resource type="Texture2D" uid="uid://chfvae43qms5i" path="res://assets/grid_tile.png" id="8_3rton"]
+[ext_resource type="Script" path="res://Scripts/level_manager.gd" id="9_3ug7f"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3xsxq"]
 bg_color = Color(1, 1, 1, 1)
@@ -24,79 +24,6 @@ expand_margin_left = 10.0
 expand_margin_top = 10.0
 expand_margin_right = 10.0
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ysoyt"]
-texture = ExtResource("8_3rton")
-0:0/0 = 0
-1:0/0 = 0
-2:0/0 = 0
-3:0/0 = 0
-4:0/0 = 0
-5:0/0 = 0
-6:0/0 = 0
-7:0/0 = 0
-0:1/0 = 0
-1:1/0 = 0
-2:1/0 = 0
-3:1/0 = 0
-4:1/0 = 0
-5:1/0 = 0
-6:1/0 = 0
-7:1/0 = 0
-0:2/0 = 0
-1:2/0 = 0
-2:2/0 = 0
-3:2/0 = 0
-4:2/0 = 0
-5:2/0 = 0
-6:2/0 = 0
-7:2/0 = 0
-0:3/0 = 0
-1:3/0 = 0
-2:3/0 = 0
-3:3/0 = 0
-4:3/0 = 0
-5:3/0 = 0
-6:3/0 = 0
-7:3/0 = 0
-0:4/0 = 0
-1:4/0 = 0
-2:4/0 = 0
-3:4/0 = 0
-4:4/0 = 0
-5:4/0 = 0
-6:4/0 = 0
-7:4/0 = 0
-0:5/0 = 0
-1:5/0 = 0
-2:5/0 = 0
-3:5/0 = 0
-4:5/0 = 0
-5:5/0 = 0
-6:5/0 = 0
-7:5/0 = 0
-0:6/0 = 0
-1:6/0 = 0
-2:6/0 = 0
-3:6/0 = 0
-4:6/0 = 0
-5:6/0 = 0
-6:6/0 = 0
-7:6/0 = 0
-0:7/0 = 0
-1:7/0 = 0
-2:7/0 = 0
-3:7/0 = 0
-4:7/0 = 0
-5:7/0 = 0
-6:7/0 = 0
-7:7/0 = 0
-
-[sub_resource type="TileSet" id="TileSet_e7cle"]
-terrain_set_0/mode = 0
-terrain_set_0/terrain_0/name = "Terrain 0"
-terrain_set_0/terrain_0/color = Color(0.94902, 0.898039, 0.768627, 1)
-sources/0 = SubResource("TileSetAtlasSource_ysoyt")
-
 [node name="Control" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -107,9 +34,9 @@ grow_vertical = 2
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-texture = ExtResource("1_0rot5")
+offset_right = 576.0
+offset_bottom = 1024.0
+texture = ExtResource("1_43ec6")
 
 [node name="TopUI" type="TextureRect" parent="."]
 visible = false
@@ -133,13 +60,10 @@ texture = ExtResource("3_udyfn")
 
 [node name="grid" type="Node2D" parent="."]
 script = ExtResource("4_2peo4")
-width = 6
-height = 9
 x_start = 64
 y_start = 800
 offset = 64
 y_offset = 2
-empty_spaces = PackedVector2Array(0, 0, 0, 1, 2, 2, 3, 3, 0, 4, 5, 5, 0, 6, 0, 7)
 
 [node name="ice_holder" type="Node2D" parent="."]
 
@@ -309,9 +233,8 @@ layout_mode = 2
 texture_under = ExtResource("6_a4fdf")
 texture_progress = ExtResource("7_uan1c")
 
-[node name="GridBackground" type="TileMapLayer" parent="."]
-position = Vector2(64, 800)
-tile_set = SubResource("TileSet_e7cle")
+[node name="LevelManager" type="Node2D" parent="."]
+script = ExtResource("9_3ug7f")
 
 [connection signal="timeout" from="destroy_timer" to="grid" method="_on_destroy_timer_timeout"]
 [connection signal="timeout" from="win_timer" to="grid" method="_on_win_timer_timeout"]

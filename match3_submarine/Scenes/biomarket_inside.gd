@@ -1,7 +1,8 @@
 extends Control
 
 var chest_cost = 1000
-var resources = ["Wood", "Stone", "Iron", "Gold"]
+#var resources = ["Wood", "Stone", "Iron", "Gold"]
+var resources = ["Silica", "Ticket"]
 var raffle_ticket_chance = 0.05  # 5% chance to get a raffle ticket
 
 func _ready():

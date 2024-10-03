@@ -1,4 +1,4 @@
-extends Control
+extends Control # or whatever the base class is
 
 @export var color: String
 @export var piece_value: int = 10  # Default value of 10, can be changed in the inspector
@@ -16,22 +16,22 @@ signal bomb_moved(bomb_type, column, row)
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	
-	pass # Replace with function body.
+	print("Piece created: ", color)
+	# Make sure there's a Sprite or other visual node as a child
+	var sprite = get_node("Sprite")
+	if sprite:
+		print("Sprite found for piece")
+	else:
+		print("Error: No Sprite found for piece")
 
 func move(target):
+	print("Moving piece to: ", target)
 	var tween: Tween = create_tween()
 	tween.tween_property(self, "position", target, 0.2).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	tween.connect("finished", Callable(self, "_on_move_finished"))
 
 func _on_move_finished():
-	var grid_position = get_parent().pixel_to_grid(position.x, position.y)
-	if is_row_bomb:
-		emit_signal("bomb_moved", "row", grid_position.x, grid_position.y)
-	elif is_column_bomb:
-		emit_signal("bomb_moved", "column", grid_position.x, grid_position.y)
-	elif is_adjacent_bomb:
-		emit_signal("bomb_moved", "adjacent", grid_position.x, grid_position.y)
+	print("Piece move finished")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
