@@ -25,10 +25,14 @@ func _ready() -> void:
 
 
 func try_login() -> void:
+	print("try_login called in wallet_service.gd")
 	if use_generated:
+		print("Using generated wallet")
 		login_game_wallet()
 	else:
+		print("Using wallet adapter, emitting on_login_begin")
 		on_login_begin.emit()
+	print("try_login completed")
 	
 func login_game_wallet() -> void:
 	if custom_wallet_path.length()==0:

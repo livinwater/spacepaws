@@ -12,12 +12,11 @@
 [node name="SolanaService" type="Node"]
 script = ExtResource("1_hwc3u")
 rpc_cluster = 1
-devnet_rpc = "https://api.devnet.solana.com"
+devnet_rpc = "https://devnet.helius-rpc.com/?api-key=70b2d5a1-870f-446d-aa12-1765f3d204c3"
 sonic_rpc = "https://www.devnet.sonic.game"
 
 [node name="WalletService" type="Node" parent="."]
 script = ExtResource("5_f327g")
-use_generated = true
 
 [node name="WalletAdapter" type="WalletAdapter" parent="WalletService"]
 

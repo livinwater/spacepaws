@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://Scripts/piece.gd" id="1_m3t0l"]
 [ext_resource type="Texture2D" uid="uid://dmgcxrxp3v2a2" path="res://assets/row_bomb.png" id="2_7or0j"]
 [ext_resource type="Texture2D" uid="uid://khgkykkxvlco" path="res://assets/column_bomb.png" id="3_k7shk"]
-[ext_resource type="Texture2D" uid="uid://d1hurfsdxfago" path="res://assets/Match 3 Assets/Pieces/Orange Adjacent.png" id="4_npxtk"]
+[ext_resource type="Texture2D" uid="uid://3npcx8cx80ui" path="res://addons/SolanaSDK/Textures/Arrow.PNG" id="4_2c4ve"]
 
 [node name="Piece" type="Control"]
 layout_mode = 3
@@ -19,7 +19,7 @@ grow_vertical = 2
 script = ExtResource("1_m3t0l")
 row_texture = ExtResource("2_7or0j")
 column_texture = ExtResource("3_k7shk")
-adjacent_texture = ExtResource("4_npxtk")
+adjacent_texture = ExtResource("4_2c4ve")
 
 [node name="Sprite" type="Sprite2D" parent="."]
 

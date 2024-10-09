@@ -101,7 +101,7 @@ func complete_level() -> void:
 		get_tree().change_scene_to_file("res://Scenes/GameHub.tscn")
 
 # Add this function to load levels from a file (if you want to store levels externally)
-func load_levels():
+func load_levels() -> bool:
 	var file = FileAccess.open("res://levels.json", FileAccess.READ)
 	if file:
 		print("levels.json file opened successfully")
@@ -110,13 +110,12 @@ func load_levels():
 		if parse_result == OK:
 			levels = json.get_data()
 			print("Parsed levels data: ", levels)
+			file.close()
+			return true
 		else:
 			print("JSON parse error: ", json.get_error_message(), " at line ", json.get_error_line())
-		file.close()
+			file.close()
+			return false
 	else:
 		print("Failed to open levels.json")
-
-# Call this function when the game starts
-func _ready():
-	load_levels()
-	print("Levels loaded: ", levels.keys())
+		return false

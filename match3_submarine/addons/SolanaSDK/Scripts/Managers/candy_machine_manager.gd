@@ -25,7 +25,10 @@ func mint_nft(cm_id:Pubkey, cm_data:CandyMachineData, payer:WalletService, recei
 		)
 		
 	instructions.append(mint_ix)
-	var tx_data:TransactionData = await SolanaService.transaction_manager.sign_transaction(instructions,tx_commitment,priority_fee,payer.get_kp())
+	var transaction:Transaction = await SolanaService.transaction_manager.create_transaction(instructions,priority_fee)
+	print("Payer keypair type: ", typeof(payer.get_kp()))
+	print("Payer keypair: ", payer.get_pubkey().to_string())
+	var tx_data:TransactionData = await SolanaService.transaction_manager.sign_transaction(transaction,tx_commitment)
 	return tx_data
 	
 	
@@ -51,5 +54,6 @@ func mint_nft_with_guards(cm_id:Pubkey,guard_id:Pubkey,cm_data:CandyMachineData,
 		)
 
 	instructions.append(mint_ix)
-	var tx_data:TransactionData = await SolanaService.transaction_manager.sign_transaction(instructions,tx_commitment,priority_fee,payer.get_kp())
+	var transaction:Transaction = await SolanaService.transaction_manager.create_transaction(instructions,priority_fee)
+	var tx_data:TransactionData = await SolanaService.transaction_manager.sign_transaction(transaction,tx_commitment,payer.get_kp())
 	return tx_data

@@ -28,16 +28,19 @@ func try_load_assets(logged_in:bool) -> void:
 		load_assets()
 		
 func load_assets()->void:
-#	if currently loading, dont trigger again
+	print("Starting asset loading process")
 	if is_loading:
+		print("Asset loading already in progress")
 		return
 		
 	is_loading=true
 	assets_loaded=false
 	
 	var connected_wallet:Pubkey = SolanaService.wallet.get_pubkey()
+	print("Connected wallet: ", connected_wallet.to_string())
 	
 	var wallet_assets:Array[Dictionary] = await SolanaService.get_wallet_assets(connected_wallet.to_string())
+	print("Wallet assets fetched: ", wallet_assets.size())
 	on_asset_load_started.emit(wallet_assets.size())
 	
 	for i in range(wallet_assets.size()):	
@@ -124,4 +127,3 @@ func get_nfts_from_collection(collection:NFTCollection) -> Array[Nft]:
 			collection_nfts.append(nft)
 			
 	return collection_nfts
-	

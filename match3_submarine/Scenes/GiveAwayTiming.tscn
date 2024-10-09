@@ -22,43 +22,44 @@ grow_vertical = 2
 texture = ExtResource("2_7kqmi")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
+z_index = 1
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -188.0
-offset_top = -471.0
-offset_right = 28.0
-offset_bottom = -169.0
+offset_left = -128.0
+offset_top = -161.0
+offset_right = 88.0
+offset_bottom = 141.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 20
 
 [node name="TimingLeft" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.917647, 0.776471, 0.556863, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "Timing Left"
 horizontal_alignment = 1
 
 [node name="TimingNow" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.917647, 0.776471, 0.556863, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "76:23
 "
 horizontal_alignment = 1
 
 [node name="ExpectedGiveawayAmt" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.917647, 0.776471, 0.556863, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "Expected Giveaway Amount
 "
 horizontal_alignment = 1
 
 [node name="ExpectedYieldReward" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.917647, 0.776471, 0.556863, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "$83.69
 "
 horizontal_alignment = 1
@@ -70,5 +71,28 @@ offset_top = 900.0
 offset_right = 142.0
 offset_bottom = 940.0
 text = "Back to Hub"
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 197.0
+offset_top = 530.0
+offset_right = 237.0
+offset_bottom = 570.0
+scale = Vector2(-7.70328, -8.07868)
+pivot_offset = Vector2(26, 7)
+color = Color(0.2, 0.2, 0.2, 0.8)
+
+[node name="RaffleButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -142.0
+offset_top = 81.0
+offset_right = -39.0
+offset_bottom = 112.0
+grow_horizontal = 2
+scale = Vector2(1.42946, 2.77525)
+text = "Insert Raffle"
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

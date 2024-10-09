@@ -18,9 +18,11 @@ signal on_adapter_cancel
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	print("WalletAdapterUI _ready function called")
 	if cancel_button!=null:
 		cancel_button.pressed.connect(cancel_login)
-	pass # Replace with function body.
+	else:
+		print("Cancel button is null")
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -28,6 +30,7 @@ func _process(delta: float) -> void:
 	pass
 	
 func setup(available_wallets) -> void:
+	print("Wallet adapter setup called with available wallets:", available_wallets)
 	for i in selection_spawn.get_children():
 		i.queue_free()
 	for i in range(available_wallets.size()):
@@ -35,8 +38,11 @@ func setup(available_wallets) -> void:
 		var button_instance:WalletAdapterButton = provider_button_scn.instantiate()
 		button_instance.set_data(provider_id,provider_names[provider_id],provider_images[provider_id])
 		selection_spawn.add_child(button_instance)
+		print("Added wallet button for provider:", provider_names[provider_id])
 		
 		button_instance.on_pressed.connect(on_button_pressed,CONNECT_ONE_SHOT)
+	
+	print("Wallet adapter setup completed")
 		
 func on_button_pressed(id_selected:int) -> void:
 	if option_select_sound!=null:

@@ -51,17 +51,19 @@ var PopupScene = preload("res://Scenes/WinPopup.tscn")
 # Add this near the top of the script with other variable declarations
 var current_blue_goal: int = 10  # Default value, will be updated by set_level_data
 var blue_pieces_cleared: int = 0
+var bombs_message_printed = false
+
 
 # At the top of the script, add:
 @onready var goal_counter_box = get_node("../MarginGoalCounter/PanelGoalCounter/GoalCounterBox")
 
-# Replace the _ready function with this:
+# Add these new functions at the end of the script
 func _ready():
 	print("Possible pieces: ", possible_pieces)
 	state = GameState.MOVE
 	var back_button = $BackButton
 	if back_button:
-		back_button.pressed.connect(self._on_back_button_pressed)
+		back_button.pressed.connect(Callable(self, "_on_back_button_pressed"))
 	randomize()
 	
 	# Initialize UI elements
@@ -79,12 +81,68 @@ func _ready():
 	all_pieces = make_2D_array()
 	print("all_pieces initialized in _ready(): ", all_pieces)
 	
+	# Load levels if not already loaded
+	if Global.levels.is_empty():
+		var levels_loaded = Global.load_levels()
+		if not levels_loaded:
+			print("Failed to load levels")
+			# Handle the error (e.g., show an error message to the user)
+			return
+	
 	# Set the level data
 	var current_level_id = Global.current_level_id
 	if str(current_level_id) in Global.levels:
 		set_level_data(Global.levels[str(current_level_id)])
 	else:
 		print("Error: Current level data not found!")
+	
+# Modify the existing set_level_data function to include any additional setup
+
+
+
+func set_level_data(data: Dictionary) -> void:
+	print("Setting level data: ", data)
+	moves_left = data.get("moves", MOVE_LIMIT)
+	current_blue_goal = data.get("blue_goal", 10)
+	blue_pieces_cleared = 0
+	current_game_score = 0
+	
+	width = data.get("width", 6)  # Default to 6 if not specified
+	height = data.get("height", 9)  # Default to 9 if not specified
+	
+	empty_spaces.clear()
+	if "empty_spaces" in data and data["empty_spaces"] is Array:
+		for space in data["empty_spaces"]:
+			if space is Array and space.size() == 2:
+				empty_spaces.append(Vector2(space[0], space[1]))
+
+	print("Grid dimensions: ", width, "x", height)
+	print("Empty spaces after processing: ", empty_spaces)
+	print("Moves left: ", moves_left)
+	print("Current blue goal: ", current_blue_goal)
+	
+	# Clear existing pieces
+	for i in width:
+		for j in height:
+			if all_pieces[i][j] != null:
+				all_pieces[i][j].queue_free()
+
+	all_pieces = make_2D_array()
+	center_grid()
+	spawn_pieces()
+	
+	update_move_counter()
+	update_blue_pieces_counter()
+	update_score_display()
+	update_level_label()
+	
+	# Reset game state
+	state = GameState.MOVE
+	controlling = false
+	move_checked = false
+	
+	print("Level data set: moves = ", moves_left, ", blue goal = ", current_blue_goal)
+	print_grid_state()
 
 func center_grid():
 	var screen_size = get_viewport_rect().size
@@ -518,6 +576,7 @@ func refill_columns():
 	after_refill()
 
 # Modify the after_refill function
+
 func after_refill():
 	streak += 1
 	var match_found = false
@@ -527,7 +586,6 @@ func after_refill():
 		for j in height:
 			if all_pieces[i][j] != null:
 				if all_pieces[i][j].is_bomb:
-					print("DEBUG: Bomb found at (%d, %d) after refill" % [i, j])
 					bombs_present = true
 				elif match_at(i, j, all_pieces[i][j].color):
 					match_found = true
@@ -539,7 +597,9 @@ func after_refill():
 	if match_found:
 		get_parent().get_node("destroy_timer").start()
 	elif bombs_present:
-		print("DEBUG: Bombs present, but not activating automatically")
+		if not bombs_message_printed:
+			print("DEBUG: Bombs present, but not activating automatically")
+			bombs_message_printed = true
 		state = GameState.MOVE
 		streak = 1
 		move_checked = false
@@ -548,6 +608,7 @@ func after_refill():
 		streak = 1
 		move_checked = false
 		check_goal()
+		bombs_message_printed = false
 
 # Modify the activate_bomb function
 func activate_bomb(i, j):
@@ -588,10 +649,6 @@ func update_points_display():
 
 # Process function to handle state and touch input
 func _process(delta):
-	print("Current level: ", Global.current_level_id)
-	print("Moves left: ", moves_left)
-	print("Blue pieces cleared: ", blue_pieces_cleared)
-	print("Current blue goal: ", current_blue_goal)
 	if state == GameState.MOVE:
 		touch_input()
 		
@@ -671,50 +728,6 @@ func _on_win_timer_timeout() -> void:
 	else:
 		# If the state isn't MOVE yet, wait a bit longer
 		get_parent().get_node("win_timer").start()
-
-# Add this function to set level data
-func set_level_data(data: Dictionary) -> void:
-	print("Setting level data: ", data)
-	moves_left = data.get("moves", MOVE_LIMIT)
-	current_blue_goal = data.get("blue_goal", 10)
-	blue_pieces_cleared = 0
-	current_game_score = 0
-	
-	width = data.get("width", 6)  # Default to 6 if not specified
-	height = data.get("height", 9)  # Default to 9 if not specified
-	
-	empty_spaces.clear()
-	if "empty_spaces" in data and data["empty_spaces"] is Array:
-		for space in data["empty_spaces"]:
-			if space is Array and space.size() == 2:
-				empty_spaces.append(Vector2(space[0], space[1]))
-
-	print("Grid dimensions: ", width, "x", height)
-	print("Empty spaces after processing: ", empty_spaces)
-	print("Moves left: ", moves_left)
-	print("Current blue goal: ", current_blue_goal)
-	
-	# Clear existing pieces
-	for i in width:
-		for j in height:
-			if all_pieces[i][j] != null:
-				all_pieces[i][j].queue_free()
-
-	all_pieces = make_2D_array()
-	spawn_pieces()
-	
-	update_move_counter()
-	update_blue_pieces_counter()
-	update_score_display()
-	update_level_label()
-	
-	# Reset game state
-	state = GameState.MOVE
-	controlling = false
-	move_checked = false
-	
-	print("Level data set: moves = ", moves_left, ", blue goal = ", current_blue_goal)
-	print_grid_state()
 
 func spawn_pieces():
 	print("Spawning pieces")

@@ -19,19 +19,12 @@ func _ready():
 	print("Piece created: ", color)
 	# Make sure there's a Sprite or other visual node as a child
 	var sprite = get_node("Sprite")
-	if sprite:
-		print("Sprite found for piece")
-	else:
-		print("Error: No Sprite found for piece")
+	
 
 func move(target):
-	print("Moving piece to: ", target)
 	var tween: Tween = create_tween()
 	tween.tween_property(self, "position", target, 0.2).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-	tween.connect("finished", Callable(self, "_on_move_finished"))
 
-func _on_move_finished():
-	print("Piece move finished")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
